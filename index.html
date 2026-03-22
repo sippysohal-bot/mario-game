@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mario Pro: Narinder Sohal Edition</title>
+    <style>
+        :root { --sky: #5C94FC; --gold: #FFD700; --red: #E52521; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-touch-callout: none; user-select: none; outline: none; }
+        
+        body { 
+            background: #000; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; overflow: hidden; font-family: sans-serif;
+        }
+
+        #gameWrapper { 
+            position: relative; 
+            width: 100vw; height: 100vh; 
+            background: var(--sky); 
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        canvas { 
+            background: var(--sky);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-width: 100%; max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Professional HUD */
+        .hud { position: absolute; top: 10px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; color: white; z-index: 10; text-shadow: 2px 2px 0 #000; font-size: 14px; pointer-events: none; }
+        .hud b { font-size: 18px; display: block; color: var(--gold); }
+
+        /* Modern Controls */
+        .controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; z-index: 20; }
+        .dpad { display: flex; gap: 10px; }
+        .btn { width: 65px; height: 65px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; backdrop-filter: blur(5px); }
+        .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+        #jumpBtn { width: 85px; height: 85px; background: rgba(229, 37, 33, 0.4); border-color: var(--red); font-weight: bold; font-size: 14px; }
+
+        .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; text-align: center; }
+        button { padding: 12px 30px; font-size: 18px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .dev-tag { position: absolute; bottom: 5px; right: 10px; color: rgba(255,255,255,0.3); font-size: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="gameWrapper">
+    <div class="hud">
+        <div>SCORE<b id="scoreVal">000000</b></div>
+        <div>COINS<b id="coinVal">x00</b></div>
+        <div>LIVES<b id="livesVal">3</b></div>
+        <div>WORLD<b>1-<span id="lvlVal">1</span></b></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+        <div class="dpad">
+            <div class="btn" id="leftBtn">◀</div>
+            <div class="btn" id="rightBtn">▶</div>
+        </div>
+        <div class="btn" id="jumpBtn">JUMP</div>
+    </div>
+
+    <div id="msgModal" class="modal">
+        <h1 id="msgTitle">LEVEL CLEAR!</h1>
+        <p style="margin: 15px 0;">Developer: Narinder Sohal | 9988672153</p>
+        <button id="nextBtn">CONTINUE</button>
+    </div>
+
+    <div class="dev-tag">BY NARINDER SOHAL</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Fixed Internal Resolution for Scaling
+    const GAME_W = 900;
+    const GAME_H = 500;
+    canvas.width = GAME_W;
+    canvas.height = GAME_H;
+
+    let game = { score: 0, coins: 0, level: 1, lives: 3, cameraX: 0, active: true, particles: [] };
+    const mario = { x: 100, y: 300, w: 34, h: 50, vx: 0, vy: 0, speed: 7, jump: 18, grounded: false, dir: 1, walkCycle: 0, squash: 1, stretch: 1 };
+
+    function getLevel(lvl) {
+        return {
+            platforms: [
+                {x: 0, y: 440, w: 3000, h: 60},
+                {x: 400, y: 320, w: 150, h: 32},
+                {x: 700, y: 220, w: 150, h: 32},
+                {x: 1000, y: 320, w: 150, h: 32},
+                {x: 1300, y: 220, w: 200, h: 32}
+            ],
+            enemies: Array.from({length: 4 + lvl}, (_, i) => ({
+                x: 600 + (i * 400), y: 408, w: 32, h: 32, vx: -2 - (lvl * 0.2), alive: true
+            })),
+            coins: Array.from({length: 15}, (_, i) => ({ x: 300 + (i * 180), y: 150 + Math.random()*200, col: false })),
+            finish: 2600
+        };
+    }
+
+    let world = getLevel(game.level);
+    const keys = {};
+
+    // Mobile Input
+    const bind = (id, k) => {
+        const el = document.getElementById(id);
+        el.onpointerdown = (e) => { e.preventDefault(); keys[k] = true; };
+        el.onpointerup = (e) => { e.preventDefault(); keys[k] = false; };
+    };
+    bind('leftBtn', 'KeyA'); bind('rightBtn', 'KeyD'); bind('jumpBtn', 'Space');
+
+    window.onkeydown = (e) => keys[e.code] = true;
+    window.onkeyup = (e) => keys[e.code] = false;
+
+    function update() {
+        if(!game.active) return;
+
+        if(keys['KeyA']) { mario.vx = -mario.speed; mario.dir = -1; mario.walkCycle += 0.2; }
+        else if(keys['KeyD']) { mario.vx = mario.speed; mario.dir = 1; mario.walkCycle += 0.2; }
+        else { mario.vx *= 0.85; mario.walkCycle = 0; }
+
+        if(keys['Space'] && mario.grounded) {
+            mario.vy = -mario.jump; mario.grounded = false;
+            mario.stretch = 1.3; mario.squash = 0.7;
+        }
+
+        mario.vy += 1;
+        mario.x += mario.vx;
+        mario.y += mario.vy;
+
+        mario.grounded = false;
+        world.platforms.forEach(p => {
+            if(mario.x < p.x + p.w && mario.x + mario.w > p.x && mario.y + mario.h > p.y && mario.y + mario.h < p.y + p.h && mario.vy >= 0) {
+                if(!mario.grounded) { mario.squash = 1.2; mario.stretch = 0.8; }
+                mario.y = p.y - mario.h; mario.vy = 0; mario.grounded = true;
+            }
+        });
+
+        mario.squash += (1 - mario.squash) * 0.2;
+        mario.stretch += (1 - mario.stretch) * 0.2;
+
+        world.enemies.forEach(en => {
+            if(!en.alive) return;
+            en.x += en.vx;
+            if(mario.x < en.x + en.w && mario.x + mario.w > en.x && mario.y < en.y + en.h && mario.y + mario.h > en.y) {
+                if(mario.vy > 0 && mario.y < en.y) {
+                    en.alive = false; mario.vy = -12; game.score += 200;
+                } else { die(); }
+            }
+        });
+
+        world.coins.forEach(c => {
+            if(!c.col && Math.abs(mario.x - c.x) < 30 && Math.abs(mario.y - c.y) < 30) {
+                c.col = true; game.coins++; game.score += 100;
+            }
+        });
+
+        game.cameraX = mario.x - 300;
+        if(game.cameraX < 0) game.cameraX = 0;
+        if(mario.x > world.finish) win();
+        if(mario.y > 500) die();
+
+        document.getElementById('scoreVal').innerText = game.score.toString().padStart(6, '0');
+        document.getElementById('coinVal').innerText = 'x' + game.coins.toString().padStart(2, '0');
+        document.getElementById('livesVal').innerText = game.lives;
+        document.getElementById('lvlVal').innerText = game.level;
+    }
+
+    function die() {
+        game.lives--;
+        if(game.lives <= 0) { alert("GAME OVER!"); location.reload(); }
+        else { mario.x = 100; mario.y = 300; mario.vx = 0; mario.vy = 0; }
+    }
+
+    function win() {
+        game.active = false;
+        document.getElementById('msgModal').style.display = 'flex';
+    }
+
+    function draw() {
+        ctx.clearRect(0,0,GAME_W,GAME_H);
+        
+        ctx.save();
+        ctx.translate(-game.cameraX, 0);
+
+        // Platforms
+        world.platforms.forEach(p => {
+            ctx.fillStyle = '#924836'; ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = '#4cc93c'; ctx.fillRect(p.x, p.y, p.w, 10);
+        });
+
+        // Coins
+        ctx.fillStyle = 'gold';
+        world.coins.forEach(c => {
+            if(!c.col) { ctx.beginPath(); ctx.arc(c.x, c.y, 10, 0, Math.PI*2); ctx.fill(); }
+        });
+
+        // Enemies
+        ctx.fillStyle = '#8B4513';
+        world.enemies.forEach(en => {
+            if(en.alive) ctx.fillRect(en.x, en.y, en.w, en.h);
+        });
+
+        // Mario Modern Player
+        ctx.save();
+        ctx.translate(mario.x + 17, mario.y + 25);
+        if(mario.dir === -1) ctx.scale(-1, 1);
+        ctx.scale(mario.stretch, mario.squash);
+        const bob = Math.sin(mario.walkCycle) * 4;
+        ctx.fillStyle = '#333'; ctx.fillRect(-12, 16 + bob, 10, 10); ctx.fillRect(2, 16 - bob, 10, 10); // Shoes
+        ctx.fillStyle = '#0055AA'; ctx.fillRect(-15, -10, 30, 30); // Body
+        ctx.fillStyle = '#FBD38D'; ctx.fillRect(-12, -35, 24, 26); // Face
+        ctx.fillStyle = '#E52521'; ctx.fillRect(-16, -38, 32, 10); // Hat
+        ctx.restore();
+
+        // Finish Pole
+        ctx.fillStyle = '#fff'; ctx.fillRect(world.finish, 100, 10, 340);
+
+        ctx.restore();
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    document.getElementById('nextBtn').onclick = () => {
+        game.level++; world = getLevel(game.level);
+        mario.x = 100; mario.y = 300; game.active = true;
+        document.getElementById('msgModal').style.display = 'none';
+    };
+
+    loop();
+</script>
+</body>
+</html>
