@@ -13,27 +13,29 @@
         
         body { background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
 
-        /* Full Screen Game Container */
         #gameWrapper { position: relative; width: 100vw; flex-grow: 1; background: var(--sky); overflow: hidden; display: flex; justify-content: center; align-items: center; }
         canvas { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 
+        /* HUD Styling */
         .hud { position: absolute; top: 10px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; color: white; z-index: 10; text-shadow: 2px 2px #000; font-size: 12px; pointer-events: none; }
         .hud b { font-size: 16px; display: block; color: var(--gold); }
 
         /* Mobile Controls */
-        .controls { position: absolute; bottom: 15px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; z-index: 20; pointer-events: none; }
+        .controls { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 25px; z-index: 20; pointer-events: none; }
         .btn-group { display: flex; gap: 15px; pointer-events: auto; }
-        .btn { width: 65px; height: 65px; background: rgba(255,255,255,0.25); border: 3px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; backdrop-filter: blur(5px); }
-        .btn:active { background: rgba(255,255,255,0.5); transform: scale(0.9); }
-        #jumpBtn { width: 85px; height: 85px; background: rgba(229, 37, 33, 0.45); border-color: var(--red); font-weight: bold; }
+        .btn { width: 65px; height: 65px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; backdrop-filter: blur(5px); }
+        .btn:active { background: rgba(255,255,255,0.5); transform: scale(0.85); }
+        #jumpBtn { width: 85px; height: 85px; background: rgba(229, 37, 33, 0.4); border-color: var(--red); font-weight: bold; }
 
-        .footer-area { background: #1a1a1a; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 30; }
-        .ad-box { width: 100%; height: 50px; background: #222; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #333; overflow: hidden; }
-        footer { padding: 8px 0; color: #888; font-size: 11px; display: flex; gap: 20px; }
+        /* Footer & Ads */
+        .footer-area { background: #1a1a1a; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 30; border-top: 2px solid #333; }
+        .ad-box { width: 100%; height: 50px; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        footer { padding: 5px 0; color: #888; font-size: 10px; display: flex; gap: 15px; }
         footer a { color: #aaa; text-decoration: none; border-bottom: 1px solid #444; cursor: pointer; }
 
+        /* Modals */
         .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; text-align: center; }
-        .action-btn { padding: 12px 40px; font-size: 20px; background: var(--gold); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; margin-top: 15px; box-shadow: 0 5px 0 #b38b00; }
+        .action-btn { padding: 12px 40px; font-size: 20px; background: var(--gold); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; color: #000; margin-top: 15px; box-shadow: 0 4px 0 #b38b00; }
     </style>
 </head>
 <body>
@@ -57,7 +59,7 @@
     </div>
 
     <div id="menuModal" class="modal">
-        <h1 id="menuTitle" style="color:var(--gold); font-size: 35px; margin-bottom: 10px;">SUPER MARIO</h1>
+        <h1 id="menuTitle" style="color:var(--gold); font-size: 35px; margin-bottom: 5px;">SUPER MARIO</h1>
         <p>Developer: Narinder Sohal | 9988672153</p>
         <button class="action-btn" id="startBtn">START GAME</button>
     </div>
@@ -73,39 +75,38 @@
     </div>
     <footer>
         <span>© 2026 Narinder Sohal</span>
-        <a onclick="alert('PRIVACY POLICY:\nWe do not collect personal data. Ads are served by Google AdSense.')">Privacy Policy</a>
-        <a onclick="alert('CONTACT US:\nNarinder Sohal\nPharwahi, Barnala, Punjab\nPhone: +91 9988672153')">Contact Us</a>
+        <a onclick="alert('Privacy Policy: No personal data is stored. Ads are served by Google.')">Privacy Policy</a>
+        <a onclick="alert('Contact: Narinder Sohal | Pharwahi, Barnala, Punjab | +91 9988672153')">Contact Us</a>
     </footer>
 </div>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    // Landscape ratio
     canvas.width = 900; canvas.height = 500;
 
     let game, player, platforms, enemies, coins, keys = {}, animId, currentLevel = 1;
 
     function createLevel(lvlNum) {
         let levelLen = 6000 + (lvlNum * 1000);
-        // Ground starts from -1000 to cover left side fully
-        let p = [{x: -1000, y: 440, w: levelLen + 3000, h: 60, type: 'ground', offY: 0}];
+        // FULL SCREEN ROAD: Starts from -2000 to cover all left gap
+        let p = [{x: -2000, y: 440, w: levelLen + 4000, h: 60, type: 'ground', offY: 0}];
         
-        // Bricks
-        for (let i = 0; i < 50 + (lvlNum * 5); i++) {
-            p.push({ x: 500 + (i * 150), y: 150 + (Math.random() * 180), w: 34, h: 34, type: 'brick', offY: 0 });
+        // Bricks spread evenly
+        for (let i = 0; i < 60 + (lvlNum * 5); i++) {
+            p.push({ x: 600 + (i * 150), y: 150 + (Math.random() * 180), w: 34, h: 34, type: 'brick', offY: 0 });
         }
 
-        // Coins
+        // Coins added through full level
         let c = [];
-        for (let i = 0; i < 40 + (lvlNum * 10); i++) {
-            c.push({ x: 600 + (i * 140), y: 100 + (Math.random() * 250), w: 16, h: 22, alive: true });
+        for (let i = 0; i < 50 + (lvlNum * 10); i++) {
+            c.push({ x: 700 + (i * 130), y: 120 + (Math.random() * 250), w: 16, h: 22, alive: true });
         }
         
-        // Enemies Spread
+        // Enemies spread across level
         let e = [];
-        for (let i = 0; i < 15 + (lvlNum * 2); i++) {
-            e.push({ x: 1000 + (i * 500), y: 408, w: 32, h: 32, vx: -(2 + (Math.random()*2)), alive: true, step: 0 });
+        for (let i = 0; i < 18 + (lvlNum * 2); i++) {
+            e.push({ x: 1000 + (i * 450), y: 408, w: 32, h: 32, vx: -(2 + (Math.random()*1.5)), alive: true, step: 0 });
         }
         return { p, e, c, finish: levelLen };
     }
@@ -123,34 +124,33 @@
 
     const bind = (id, k) => {
         const el = document.getElementById(id);
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); if(game.active) keys[k] = true; });
-        el.addEventListener('touchend', (e) => { e.preventDefault(); keys[k] = false; });
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); if(game.active) keys[k] = true; }, {passive: false});
+        el.addEventListener('touchend', (e) => { e.preventDefault(); keys[k] = false; }, {passive: false});
     };
     bind('leftBtn', 'KeyA'); bind('rightBtn', 'KeyD'); bind('jumpBtn', 'Space');
     document.getElementById('startBtn').onclick = () => init(true);
 
-    // --- ORIGINAL NES MARIO ---
+    // NES MARIO PIXELS
     function drawMario(p) {
         ctx.save(); ctx.translate(p.x + p.w/2 - game.cameraX, p.y + p.h/2);
         if(p.dir === -1) ctx.scale(-1, 1);
         const red = '#E52521', skin = '#FBD38D', hair = '#6B3C0D', blue = '#0055AA';
         ctx.fillStyle = red; ctx.fillRect(-12, -26, 24, 8); ctx.fillRect(-14, -20, 20, 5); // Hat
-        ctx.fillStyle = hair; ctx.fillRect(-12, -20, 10, 8); ctx.fillStyle = skin; ctx.fillRect(-8, -20, 16, 18); // Face
-        ctx.fillStyle = hair; ctx.fillRect(2, -16, 8, 4); // Mustache
+        ctx.fillStyle = skin; ctx.fillRect(-8, -20, 16, 18); // Face
+        ctx.fillStyle = hair; ctx.fillRect(-12, -20, 5, 8); ctx.fillRect(2, -16, 8, 4); // Hair & Mo
         ctx.fillStyle = blue; ctx.fillRect(-10, -2, 20, 24); ctx.fillStyle = red; ctx.fillRect(-10, -2, 20, 8); // Body
         ctx.fillStyle = '#553311'; ctx.fillRect(-11, 20, 9, 8); ctx.fillRect(2, 20, 9, 8); // Shoes
         ctx.restore();
     }
 
-    // --- ORIGINAL NES GOOMBA ---
+    // NES GOOMBA PIXELS
     function drawGoomba(en) {
         if(!en.alive) return;
         ctx.save(); ctx.translate(en.x + en.w/2 - game.cameraX, en.y + en.h/2);
-        const brown = '#8B4513', skin = '#FBD38D';
-        ctx.fillStyle = brown; ctx.beginPath(); ctx.moveTo(-16,-8); ctx.lineTo(16,-8); ctx.lineTo(12,12); ctx.lineTo(-12,12); ctx.fill();
-        ctx.fillStyle = skin; ctx.fillRect(-10, 0, 20, 10); ctx.fillStyle = '#000'; ctx.fillRect(-7, 3, 2, 2); ctx.fillRect(5, 3, 2, 2); 
-        ctx.fillStyle = 'black'; const foot = Math.sin(Date.now()/100) * 3;
-        ctx.fillRect(-12, 12 + foot, 10, 5); ctx.fillRect(2, 12 - foot, 10, 5); // Feet animation
+        ctx.fillStyle = '#8B4513'; ctx.beginPath(); ctx.moveTo(-16,-8); ctx.lineTo(16,-8); ctx.lineTo(12,12); ctx.lineTo(-12,12); ctx.fill();
+        ctx.fillStyle = '#FBD38D'; ctx.fillRect(-10, 0, 20, 10); ctx.fillStyle = '#000'; ctx.fillRect(-7, 3, 2, 2); ctx.fillRect(5, 3, 2, 2); 
+        ctx.fillStyle = 'black'; const f = Math.sin(Date.now()/100) * 3;
+        ctx.fillRect(-12, 12 + f, 10, 5); ctx.fillRect(2, 12 - f, 10, 5);
         ctx.restore();
     }
 
@@ -198,12 +198,12 @@
         });
 
         coins.forEach(c => {
-            if(c.alive && player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.w && player.y + player.h > c.y) { c.alive = false; game.score += 100; }
+            if(c.alive && player.x < c.x + c.w && player.x + player.w > c.x && player.y < c.y + c.h && player.y + player.h > c.y) { c.alive = false; game.score += 100; }
         });
 
         game.cameraX = Math.max(0, player.x - 300);
         if(player.y > 550) die();
-        if(player.x > game.finishLine) { game.active = false; currentLevel++; document.getElementById('menuTitle').innerText = "LEVEL CLEAR!"; document.getElementById('menuModal').style.display = 'flex'; }
+        if(player.x > game.finishLine) { game.active = false; currentLevel++; document.getElementById('menuTitle').innerText = "WORLD CLEAR!"; document.getElementById('menuModal').style.display = 'flex'; }
         
         document.getElementById('scoreVal').innerText = game.score.toString().padStart(6, '0');
         document.getElementById('livesVal').innerText = game.lives;
@@ -218,7 +218,10 @@
             ctx.fillRect(p.x - game.cameraX, p.y + p.offY, p.w, p.h);
             if(p.type === 'ground') { ctx.fillStyle = '#4cc93c'; ctx.fillRect(p.x - game.cameraX, p.y, p.w, 12); }
         });
-        coins.forEach(drawCoin); enemies.forEach(drawGoomba); drawMario(player); update();
+        coins.forEach(drawCoin);
+        enemies.forEach(drawGoomba); 
+        drawMario(player); 
+        update();
         animId = requestAnimationFrame(loop);
     }
     game = { active: false };
