@@ -3,86 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Mario 50 Levels - Narinder Sohal</title>
+    <title>Super Mario Pro - Narinder Sohal</title>
     
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADSENSE_ID" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUB_ID" crossorigin="anonymous"></script>
 
     <style>
         :root { --sky: #5C94FC; --gold: #FFD700; --red: #E52521; }
         
-        /* Mobile Touch Fixes: Zoom aur selection rokne ke liye */
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            -webkit-touch-callout: none; -webkit-user-select: none; 
-            user-select: none; outline: none; touch-action: none;
-        }
+        /* Mobile Screen Fix */
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; }
+        body { background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
 
-        body { 
-            background: #000; display: flex; flex-direction: column; 
-            height: 100vh; overflow: hidden; font-family: sans-serif; 
-        }
-
-        #gameWrapper { 
-            position: relative; width: 100vw; flex-grow: 1; 
-            background: var(--sky); overflow: hidden; display: flex; 
-            justify-content: center; align-items: center; 
-        }
-
-        canvas { 
-            max-width: 100%; max-height: 100%; 
-            image-rendering: pixelated; object-fit: contain; 
-        }
+        /* Game Canvas Fit */
+        #gameWrapper { position: relative; width: 100vw; flex-grow: 1; background: var(--sky); overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        canvas { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 
         /* HUD Styling */
-        .hud { 
-            position: absolute; top: 10px; width: 100%; padding: 0 15px; 
-            display: flex; justify-content: space-between; color: white; 
-            z-index: 10; text-shadow: 2px 2px #000; pointer-events: none; 
-            font-size: 12px;
-        }
-        .hud b { font-size: 16px; display: block; color: var(--gold); }
+        .hud { position: absolute; top: 5px; width: 100%; padding: 0 15px; display: flex; justify-content: space-between; color: white; z-index: 10; text-shadow: 2px 2px #000; font-size: 10px; pointer-events: none; }
+        .hud b { font-size: 14px; display: block; color: var(--gold); }
 
-        /* Mobile Controls Styling */
-        .controls { 
-            position: absolute; bottom: 20px; width: 100%; 
-            display: flex; justify-content: space-between; 
-            padding: 0 20px; z-index: 20; pointer-events: none;
-        }
-        
-        .btn-group { display: flex; gap: 15px; pointer-events: auto; }
-        
-        .btn { 
-            width: 75px; height: 75px; background: rgba(255,255,255,0.25); 
-            border: 3px solid #fff; border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; color: white; 
-            font-size: 24px; backdrop-filter: blur(5px); pointer-events: auto;
-        }
-        
-        .btn:active { background: rgba(255,255,255,0.5); transform: scale(0.9); }
-        #jumpBtn { width: 95px; height: 95px; background: rgba(229, 37, 33, 0.45); border-color: var(--red); font-weight: bold; }
+        /* Mobile Responsive Buttons */
+        .controls { position: absolute; bottom: 15px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 20; pointer-events: none; }
+        .btn-group { display: flex; gap: 10px; pointer-events: auto; }
+        .btn { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; backdrop-filter: blur(5px); }
+        .btn:active { background: rgba(255,255,255,0.4); transform: scale(0.9); }
+        #jumpBtn { width: 80px; height: 80px; background: rgba(229, 37, 33, 0.4); border-color: var(--red); font-weight: bold; font-size: 12px; }
 
-        .modal { 
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9); 
-            display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; z-index: 100; color: white; text-align: center; 
-        }
-
-        .action-btn { 
-            padding: 15px 45px; font-size: 22px; background: var(--gold); 
-            border: none; border-radius: 12px; font-weight: bold; 
-            cursor: pointer; color: #000; margin-top: 20px; 
-            box-shadow: 0 5px 0 #b38b00;
-        }
-
-        /* 2. AD Container: Ad yahan dikhega */
-        .ad-space { width: 100%; height: 60px; background: #222; display: flex; justify-content: center; align-items: center; }
-
-        footer { 
-            height: 50px; background: #1a1a1a; color: #888; 
-            display: flex; justify-content: center; align-items: center; 
-            font-size: 11px; gap: 20px; border-top: 1px solid #333;
-        }
+        /* Ad & Footer Section */
+        .footer-area { background: #1a1a1a; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 30; }
+        .ad-box { width: 100%; height: 50px; background: #222; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 1px solid #333; }
+        footer { padding: 5px 0; color: #888; font-size: 10px; display: flex; gap: 15px; }
         footer a { color: #aaa; text-decoration: none; border-bottom: 1px solid #444; }
+
+        /* Modals */
+        .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; text-align: center; }
+        .action-btn { padding: 12px 35px; font-size: 18px; background: var(--gold); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: #000; margin-top: 15px; box-shadow: 0 4px 0 #b38b00; }
     </style>
 </head>
 <body>
@@ -93,9 +48,7 @@
         <div>WORLD<b id="lvlVal">1-1</b></div>
         <div>LIVES<b id="livesVal">3</b></div>
     </div>
-    
     <canvas id="gameCanvas"></canvas>
-    
     <div class="controls">
         <div class="btn-group">
             <div class="btn" id="leftBtn">◀</div>
@@ -105,27 +58,27 @@
             <div class="btn" id="jumpBtn">JUMP</div>
         </div>
     </div>
-
     <div id="menuModal" class="modal">
-        <h1 id="menuTitle" style="color:var(--gold); font-size: 40px; margin-bottom: 10px;">SUPER MARIO</h1>
-        <p>Developer: Narinder Sohal | 9988672153</p>
+        <h1 id="menuTitle" style="color:var(--gold); font-size: 30px;">SUPER MARIO</h1>
+        <p>Narinder Sohal | 9988672153</p>
         <button class="action-btn" id="startBtn">START GAME</button>
     </div>
 </div>
 
-<div class="ad-space">
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:320px;height:50px"
-         data-ad-client="ca-pub-YOUR_ADSENSE_ID"
-         data-ad-slot="YOUR_AD_SLOT_ID"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+<div class="footer-area">
+    <div class="ad-box">
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:320px;height:50px"
+             data-ad-client="ca-pub-YOUR_PUB_ID"
+             data-ad-slot="YOUR_SLOT_ID"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+    <footer>
+        <span>© 2026 Narinder Sohal</span>
+        <a href="#" onclick="alert('Privacy Policy: We serve ads through Google AdSense. No personal data stored.')">Privacy Policy</a>
+        <a href="#" onclick="alert('Contact Us: Pharwahi Barnala, Punjab | Phone: +919988672153')">Contact Us</a>
+    </footer>
 </div>
-
-<footer>
-    <span>© 2026 Narinder Sohal</span>
-    <a href="#" onclick="alert('PRIVACY POLICY:\n1. We do not collect personal data.\n2. Ads are served by Google.\n3. Cookies are used for Ad performance.')">Privacy Policy</a>
-    <a href="#" onclick="alert('CONTACT US:\nEmail: sippysoha@gmail.com\nPhone: +91 9988672153\nAddress: Pharwahi Barnala, Punjab, India')">Contact Us</a>
-</footer>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
@@ -137,88 +90,56 @@
     function createLevel(lvlNum) {
         let p = [{x: 0, y: 440, w: 5000 + (lvlNum * 500), h: 60, type: 'ground', offY: 0}];
         for (let i = 0; i < 40 + lvlNum; i++) {
-            p.push({
-                x: 400 + (i * 130), 
-                y: 150 + (Math.random() * 180), 
-                w: 34, h: 34, type: 'brick', offY: 0
-            });
+            p.push({ x: 400 + (i * 130), y: 150 + (Math.random() * 180), w: 34, h: 34, type: 'brick', offY: 0 });
         }
-        let e = Array.from({length: 5 + lvlNum}, (_, i) => ({
-            x: 800 + (i * 500), y: 408, w: 32, h: 32, vx: -(2 + (lvlNum * 0.1)), alive: true, step: 0
-        }));
+        let e = Array.from({length: 5 + lvlNum}, (_, i) => ({ x: 800 + (i * 500), y: 408, w: 32, h: 32, vx: -(2 + (lvlNum * 0.1)), alive: true, step: 0 }));
         return { p, e, finish: 4800 + (lvlNum * 500) };
     }
 
     function init(resetAll = false) {
         if (animId) cancelAnimationFrame(animId);
         if (resetAll) { currentLevel = 1; game = { score: 0, lives: 3 }; }
-        
         let lvlData = createLevel(currentLevel);
-        game.active = true;
-        game.cameraX = 0;
+        game.active = true; game.cameraX = 0;
         player = { x: 50, y: 300, w: 34, h: 54, vx: 0, vy: 0, speed: 7, jump: 18, grounded: false, dir: 1 };
-        platforms = lvlData.p;
-        enemies = lvlData.e;
-        game.finishLine = lvlData.finish;
-
+        platforms = lvlData.p; enemies = lvlData.e; game.finishLine = lvlData.finish;
         document.getElementById('menuModal').style.display = 'none';
         loop();
     }
 
     const bind = (id, k) => {
         const el = document.getElementById(id);
-        // Mobile Touch Events
         el.addEventListener('touchstart', (e) => { e.preventDefault(); if(game.active) keys[k] = true; }, {passive: false});
         el.addEventListener('touchend', (e) => { e.preventDefault(); keys[k] = false; }, {passive: false});
-        // Mouse Events for PC
-        el.onpointerdown = (e) => { e.preventDefault(); if(game.active) keys[k] = true; };
-        el.onpointerup = (e) => { e.preventDefault(); keys[k] = false; };
     };
     bind('leftBtn', 'KeyA'); bind('rightBtn', 'KeyD'); bind('jumpBtn', 'Space');
     document.getElementById('startBtn').onclick = () => init(true);
 
     function drawMario(p) {
-        ctx.save();
-        ctx.translate(p.x + p.w/2 - game.cameraX, p.y + p.h/2);
+        ctx.save(); ctx.translate(p.x + p.w/2 - game.cameraX, p.y + p.h/2);
         if(p.dir === -1) ctx.scale(-1, 1);
         const red = '#E52521', skin = '#FBD38D', hair = '#6B3C0D', blue = '#0055AA';
-        ctx.fillStyle = red; ctx.fillRect(-12, -26, 24, 8);
-        ctx.fillStyle = red; ctx.fillRect(-14, -20, 20, 5);
-        ctx.fillStyle = hair; ctx.fillRect(-12, -20, 10, 8); 
-        ctx.fillStyle = skin; ctx.fillRect(-8, -20, 16, 18); 
-        ctx.fillStyle = hair; ctx.fillRect(2, -16, 8, 4); 
-        ctx.fillStyle = skin; ctx.fillRect(2, -18, 5, 5); 
-        ctx.fillStyle = blue; ctx.fillRect(-10, -2, 20, 24);
-        ctx.fillStyle = red; ctx.fillRect(-10, -2, 20, 8); 
-        ctx.fillStyle = blue; ctx.fillRect(-6, -2, 4, 12); ctx.fillRect(2, -2, 4, 12);
-        ctx.fillStyle = '#FFD700'; ctx.fillRect(-6, 6, 4, 4); ctx.fillRect(2, 6, 4, 4);
-        ctx.fillStyle = '#553311'; ctx.fillRect(-11, 20, 9, 8); ctx.fillRect(2, 20, 9, 8);
+        ctx.fillStyle = red; ctx.fillRect(-12, -26, 24, 8); ctx.fillRect(-14, -20, 20, 5); // Hat
+        ctx.fillStyle = hair; ctx.fillRect(-12, -20, 10, 8); ctx.fillStyle = skin; ctx.fillRect(-8, -20, 16, 18); // Face
+        ctx.fillStyle = hair; ctx.fillRect(2, -16, 8, 4); // Mustache
+        ctx.fillStyle = blue; ctx.fillRect(-10, -2, 20, 24); ctx.fillStyle = red; ctx.fillRect(-10, -2, 20, 8); // Body
+        ctx.fillStyle = '#553311'; ctx.fillRect(-11, 20, 9, 8); ctx.fillRect(2, 20, 9, 8); // Shoes
         ctx.restore();
     }
 
     function drawGoomba(en) {
         if(!en.alive) return;
-        ctx.save();
-        ctx.translate(en.x + en.w/2 - game.cameraX, en.y + en.h/2);
-        const darkBrown = '#8B4513', skin = '#FBD38D', black = '#000';
-        ctx.fillStyle = darkBrown;
-        ctx.beginPath(); ctx.moveTo(-16,-8); ctx.lineTo(16,-8); ctx.lineTo(12,12); ctx.lineTo(-12,12); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = skin; ctx.fillRect(-10, 0, 20, 10);
-        ctx.fillStyle = '#fff'; ctx.fillRect(-8, 2, 4, 4); ctx.fillRect(4, 2, 4, 4); 
-        ctx.fillStyle = black; ctx.fillRect(-7, 3, 2, 2); ctx.fillRect(5, 3, 2, 2); 
-        const walk = Math.sin(Date.now()/100) * 2;
-        ctx.fillStyle = black; ctx.fillRect(-12, 12 + walk, 10, 6); ctx.fillRect(2, 12 - walk, 10, 6);
+        ctx.save(); ctx.translate(en.x + en.w/2 - game.cameraX, en.y + en.h/2);
+        const brown = '#8B4513', skin = '#FBD38D';
+        ctx.fillStyle = brown; ctx.beginPath(); ctx.moveTo(-16,-8); ctx.lineTo(16,-8); ctx.lineTo(12,12); ctx.lineTo(-12,12); ctx.fill();
+        ctx.fillStyle = skin; ctx.fillRect(-10, 0, 20, 10); ctx.fillStyle = '#000'; ctx.fillRect(-7, 3, 2, 2); ctx.fillRect(5, 3, 2, 2); 
         ctx.restore();
     }
 
     function die() {
         game.lives--;
-        if(game.lives <= 0) {
-            game.active = false;
-            document.getElementById('menuTitle').innerText = "GAME OVER";
-            document.getElementById('startBtn').innerText = "RESTART GAME";
-            document.getElementById('menuModal').style.display = 'flex';
-        } else { player.x = 50; player.y = 300; player.vx = 0; player.vy = 0; }
+        if(game.lives <= 0) { game.active = false; document.getElementById('menuTitle').innerText = "GAME OVER"; document.getElementById('menuModal').style.display = 'flex'; }
+        else { player.x = 50; player.y = 300; player.vx = 0; player.vy = 0; }
     }
 
     function update() {
@@ -229,7 +150,6 @@
         if(keys['Space'] && player.grounded) { player.vy = -player.jump; player.grounded = false; }
         player.vy += 1; player.x += player.vx; player.y += player.vy;
         player.grounded = false;
-
         platforms.forEach(p => {
             if(player.x < p.x + p.w && player.x + player.w > p.x && player.y + player.h > p.y + p.offY && player.y + player.h < p.y + p.h + p.offY && player.vy >= 0) {
                 player.y = (p.y + p.offY) - player.h; player.vy = 0; player.grounded = true;
@@ -239,7 +159,6 @@
             }
             if(p.offY < 0) p.offY += 2;
         });
-
         enemies.forEach(en => {
             if(!en.alive) return; en.x += en.vx;
             if(player.x < en.x + en.w && player.x + player.w > en.x && player.y < en.y + en.h && player.y + player.h > en.y) {
@@ -247,18 +166,9 @@
                 else { die(); }
             }
         });
-
         game.cameraX = Math.max(0, player.x - 300);
         if(player.y > 550) die();
-        
-        if(player.x > game.finishLine) {
-            game.active = false;
-            currentLevel++;
-            document.getElementById('menuTitle').innerText = "LEVEL " + (currentLevel-1) + " CLEAR!";
-            document.getElementById('startBtn').innerText = "NEXT LEVEL (" + currentLevel + ")";
-            document.getElementById('menuModal').style.display = 'flex';
-        }
-
+        if(player.x > game.finishLine) { game.active = false; currentLevel++; document.getElementById('menuTitle').innerText = "LEVEL CLEAR!"; document.getElementById('menuModal').style.display = 'flex'; }
         document.getElementById('scoreVal').innerText = game.score.toString().padStart(6, '0');
         document.getElementById('livesVal').innerText = game.lives;
         document.getElementById('lvlVal').innerText = "1-" + currentLevel;
@@ -272,12 +182,9 @@
             ctx.fillRect(p.x - game.cameraX, p.y + p.offY, p.w, p.h);
             if(p.type === 'ground') { ctx.fillStyle = '#4cc93c'; ctx.fillRect(p.x - game.cameraX, p.y, p.w, 12); }
         });
-        enemies.forEach(drawGoomba);
-        drawMario(player);
-        update();
+        enemies.forEach(drawGoomba); drawMario(player); update();
         animId = requestAnimationFrame(loop);
     }
-
     game = { active: false };
 </script>
 </body>
